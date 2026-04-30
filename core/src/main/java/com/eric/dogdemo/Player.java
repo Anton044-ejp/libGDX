@@ -9,14 +9,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 
 public class Player extends Sprite {
-    //private String image = "dog (1).png";
     private final float speed = 2f; // units per second 
     private final FitViewport viewport;
     private float velocityY = 0f; // velocity is speed + direction
     private final float gravity = -9.8f; // Adjust as needed
     private final float jumpVelocity = 5f; //  Adjust as needed
     private boolean isGrounded = true;
-
+    private float slowTimer = 0f;
+    private float currentSpeed = 2f;  // whatever your current speed is
+    private final float slowedSpeed = 1f; // half
 
 
     public Player(FitViewport viewport) {
@@ -25,21 +26,21 @@ public class Player extends Sprite {
     }
 
     public void input() {
-
         float delta = Gdx.graphics.getDeltaTime(); // for all hw frame rate
+
+        // Update slow timer
+        slowTimer -= delta;
+        if (slowTimer < 0) slowTimer = 0f;
+        currentSpeed = (slowTimer > 0) ? slowedSpeed : speed;
+        
+        // **************Horizontal movement logic**************
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            this.translateX(-speed*delta); // Move left
+            this.translateX(-currentSpeed*delta); // Move left
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            this.translateX(speed*delta); // Move right
+            this.translateX(currentSpeed*delta); // Move right
         }
 
-        /*if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            this.translateY(speed*delta); // Move up 
-        }  
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            this.translateY(-speed*delta); // Move down
-        }*/
         // **************Jumping logic**************
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && isGrounded) {
             velocityY = jumpVelocity; // Set initial jump velocity
@@ -54,8 +55,6 @@ public class Player extends Sprite {
             velocityY = 0;
             isGrounded = true;
         }
-
-
     }
 
     public void move() {
@@ -64,5 +63,11 @@ public class Player extends Sprite {
         this.setY(MathUtils.clamp(this.getY(),
       0, viewport.getWorldHeight() - this.getHeight()));
     }
+
+    public void applySlow() {
+        slowTimer = 1f; // seconds of slow (adjust 1-2f as you like)       
+    }
+
+
     
 }

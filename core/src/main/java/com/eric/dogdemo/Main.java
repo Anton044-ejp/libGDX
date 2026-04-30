@@ -1,5 +1,7 @@
 package com.eric.dogdemo;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
@@ -10,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -24,13 +27,18 @@ public class Main implements ApplicationListener {
     private Sprite background;
     private FitViewport viewport;
     private Ball ball; 
-    private boolean flag = false;
     private ScreenViewport uiViewport;
     private ShapeRenderer shapeRenderer;
     private BitmapFont font;
     private int score = 0;
     private Sound bark;
     private Sound growl;
+    private Sound whine;
+    private Texture enemyTexture;
+    private Array<Enemy> enemies;
+    private float spawnInterval;
+    private float spawnTimer;
+    private FlashText flashText;
 
     @Override
     public void create() {
@@ -47,19 +55,22 @@ public class Main implements ApplicationListener {
         uiViewport = new ScreenViewport();
         shapeRenderer = new ShapeRenderer();
         font = new BitmapFont();
+        flashText = new FlashText(font);
         bark =  Gdx.audio.newSound(Gdx.files.internal("dog-bark.mp3"));
         growl = Gdx.audio.newSound(Gdx.files.internal("growl.mp3"));
+        whine = Gdx.audio.newSound(Gdx.files.internal("dog-whine.mp3"));
+        enemyTexture = new Texture("enemy.png");
+        spawnInterval = 2f; // Initial spawn interval in seconds
+        spawnTimer = 0f;
+        enemies = new Array<>();
     }
 
     @Override
     public void resize(int width, int height) {
-        // If the window is minimized on a desktop (LWJGL3) platform, width and height are 0, which causes problems.
-        // In that case, we don't resize anything, and wait for the window to be a normal size before updating.
+
         if(width <= 0 || height <= 0) return;
         viewport.update(width, height, true);
         uiViewport.update(width, height, true);
-
-        // Resize your application here. The parameters represent the new window size.
     }
 
     @Override
@@ -72,14 +83,42 @@ public class Main implements ApplicationListener {
         batch.begin();
         background.draw(batch);
         dog.draw(batch);
-        if (onCollision()){
-            flag = true;
-        }
+        onCollision();
+
         ball.draw(batch);
         batch.end();
         dog.move();
         ball.update();
 
+        /////////////////ENEMIES////////////////
+        // Spawn enemies at random intervals
+        spawnTimer += Gdx.graphics.getDeltaTime();
+        if (spawnTimer >= spawnInterval) {
+            enemies.add(new Enemy(enemyTexture, viewport));
+            spawnTimer = 0f;
+            spawnInterval = 2f + (float)(Math.random() * 2f); // 2–4 seconds between spawns
+        }
+        // --- Update ---
+        for (Enemy enemy : enemies) {
+            enemy.update();
+        }
+        Iterator<Enemy> iteration = enemies.iterator();
+        while (iteration.hasNext()) {
+            if (iteration.next().isOffScreen()) {
+                iteration.remove();
+            }
+        }
+        // --- Render ---
+        viewport.apply();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
+        batch.begin();
+        for (Enemy enemy : enemies) {
+            enemy.render(batch);
+        }
+        batch.end();
+        
+        
+        //////////SCORE BAR//////////
         // Draw UI (score bar)
         uiViewport.apply();
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
@@ -95,11 +134,21 @@ public class Main implements ApplicationListener {
         font.getData().setScale(2.0f); // .05 is smallest
         font.draw(batch, "Score: " + score, 20, uiViewport.getScreenHeight() - 10);
         batch.end();
+
+        ///////////FLASH TEXT//////////
+        flashText.update(Gdx.graphics.getDeltaTime());
+        batch.begin();
+        font.getData().setScale(8f); // big and bold
+        flashText.render(batch, uiViewport);
+        font.getData().setScale(2f); // reset for score text
+        font.draw(batch, "Score: " + score, 20, uiViewport.getScreenHeight() - 10);
+        batch.end();
     }
 
     public boolean onCollision() {
         Rectangle dogHitbox = dog.getBoundingRectangle();
         Rectangle ballHitbox = ball.getBoundingRectangle();
+        Rectangle enemyHitbox;
         // if dog catches bone
         if (dogHitbox.overlaps(ballHitbox)) {
                 score++; // Increment score on collision
@@ -113,12 +162,24 @@ public class Main implements ApplicationListener {
         if (ballHitbox.getY() < 0) {
             score -= 1; // Decrement score if ball goes below the screen
             growl.play(); // Play growl sound
-
+            font.setColor(Color.RED);
+            flashText.show("MISSED!", 1f);
             System.out.println("Miss!"); // bone missed, print message to console
             ball = new Ball(viewport); // Reset bone to a new random position at the top
             return true;
         }
-
+        // if dog hits enemy
+        for (Enemy enemy : enemies) {
+            enemyHitbox = enemy.getBounds();
+            if (dogHitbox.overlaps(enemyHitbox)) {
+                dog.applySlow(); // Apply slow effect to the player
+                whine.play(); // Play whine sound
+                font.setColor(Color.YELLOW); 
+                flashText.show("SLOWED!", 1.5f);
+                System.out.println("Hit by enemy!"); // Collision detected, print message to console
+                return true;
+            }
+        }    
         return false;
     }
 
@@ -136,5 +197,9 @@ public class Main implements ApplicationListener {
     public void dispose() {
         shapeRenderer.dispose();
         font.dispose();
+        enemyTexture.dispose();
+        batch.dispose();
+
     }
 }
+
