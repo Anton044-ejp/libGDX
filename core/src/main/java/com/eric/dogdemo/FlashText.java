@@ -8,7 +8,6 @@ public class FlashText {
     private final BitmapFont font;
     private String text;
     private float timer = 0f;
-    private float duration;
     private boolean active = false;
 
     public FlashText(BitmapFont font) {
@@ -17,7 +16,6 @@ public class FlashText {
 
     public void show(String text, float duration) {
         this.text = text;
-        this.duration = duration;
         this.timer = duration;
         this.active = true;
     }

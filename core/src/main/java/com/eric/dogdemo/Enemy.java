@@ -9,16 +9,27 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Enemy extends Sprite {
     private float speed = 2f; // units per second
-    private final FitViewport viewport;
-    private Rectangle bounds; // for collision detection
+    private final Rectangle bounds; // for collision detection
     
 
     public Enemy(Texture texture, FitViewport viewport) {
         super(new Texture("enemy.png"));
-        this.viewport = viewport;
-        setSize(1f, 0.5f); // Set the size
+        setSize(0.75f, 0.5f); // Set the size
         setPosition(viewport.getWorldWidth(), 0); // Start at the right edge
         bounds = new Rectangle(getX(), getY(), getWidth(), getHeight());
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    @Override
+    public String toString() {
+            return "Enemy[x=" + getX() + ", y=" + getY() + ", speed=" + speed + ", offScreen=" + isOffScreen() + "]";
     }
 
     public void update() {
