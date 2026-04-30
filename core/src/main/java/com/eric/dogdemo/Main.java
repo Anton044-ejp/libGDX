@@ -139,6 +139,7 @@ public class Main implements ApplicationListener {
         batch.begin();
         font.getData().setScale(8f); // big and bold
         flashText.render(batch, uiViewport);
+        font.setColor(Color.WHITE); // reset color for score
         font.getData().setScale(2f); // reset for score text
         font.draw(batch, "Score: " + score, 20, uiViewport.getScreenHeight() - 10);
         batch.end();
@@ -152,7 +153,6 @@ public class Main implements ApplicationListener {
         if (dogHitbox.overlaps(ballHitbox)) {
                 score++; // Increment score on collision
                 bark.play(); // Play bark sound
-
                 System.out.println("Catch!"); // Collision detected, print message to console
                 ball = new Ball(viewport); // Reset bone to a new random position at the top
                 return true;
@@ -161,8 +161,7 @@ public class Main implements ApplicationListener {
         if (ballHitbox.getY() < 0) {
             score -= 1; // Decrement score if ball goes below the screen
             growl.play(); // Play growl sound
-            font.setColor(Color.RED);
-            flashText.show("MISSED!", 3f);
+            flashText.show("MISSED!", 3f, Color.RED);
             System.out.println("Miss!"); // bone missed, print message to console
             ball = new Ball(viewport); // Reset bone to a new random position at the top
             return true;
@@ -173,8 +172,7 @@ public class Main implements ApplicationListener {
             if (dogHitbox.overlaps(enemyHitbox) && !dog.isSlowed()) {
                 dog.applySlow(); // Apply slow effect to the player
                 whine.play(); // Play whine sound
-                font.setColor(Color.YELLOW); 
-                flashText.show("SLOWED!", 3f);
+                flashText.show("SLOWED!", 3f, Color.YELLOW);
                 System.out.println("Hit by enemy!"); // Collision detected, print message to console
                 return true;
             }
