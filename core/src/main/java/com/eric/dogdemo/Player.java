@@ -9,15 +9,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 
 public class Player extends Sprite {
-    private final float speed = 2f; // units per second 
+    private final float speed = 4f; // units per second 
     private final FitViewport viewport;
     private float velocityY = 0f; // velocity is speed + direction
     private final float gravity = -9.8f; // Adjust as needed
     private final float jumpVelocity = 5f; //  Adjust as needed
     private boolean isGrounded = true;
     private float slowTimer = 0f;
-    private float currentSpeed = 2f;  // whatever your current speed is
-    private final float slowedSpeed = 1f; // half
+    private float currentSpeed = 4f;  // whatever your current speed is
+    private final float slowedSpeed = 0.5f; // slowed speed when hit by enemy
 
 
     public Player(FitViewport viewport) {
@@ -30,7 +30,9 @@ public class Player extends Sprite {
 
         // Update slow timer
         slowTimer -= delta;
-        if (slowTimer < 0) slowTimer = 0f;
+        if (slowTimer <= 0) {
+            slowTimer = 0f;
+        }
         currentSpeed = (slowTimer > 0) ? slowedSpeed : speed;
         
         // **************Horizontal movement logic**************
@@ -65,7 +67,11 @@ public class Player extends Sprite {
     }
 
     public void applySlow() {
-        slowTimer = 1f; // seconds of slow (adjust 1-2f as you like)       
+        slowTimer = 3f; // seconds of slow (adjust 1-2f as you like)       
+    }
+
+    public boolean isSlowed() {
+        return slowTimer > 0;
     }
 
 

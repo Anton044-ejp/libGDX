@@ -84,7 +84,6 @@ public class Main implements ApplicationListener {
         background.draw(batch);
         dog.draw(batch);
         onCollision();
-
         ball.draw(batch);
         batch.end();
         dog.move();
@@ -96,7 +95,7 @@ public class Main implements ApplicationListener {
         if (spawnTimer >= spawnInterval) {
             enemies.add(new Enemy(enemyTexture, viewport));
             spawnTimer = 0f;
-            spawnInterval = 2f + (float)(Math.random() * 2f); // 2–4 seconds between spawns
+            spawnInterval = 2f + (float)(Math.random() * 3f); // 2–4 seconds between spawns
         }
         // --- Update ---
         for (Enemy enemy : enemies) {
@@ -163,7 +162,7 @@ public class Main implements ApplicationListener {
             score -= 1; // Decrement score if ball goes below the screen
             growl.play(); // Play growl sound
             font.setColor(Color.RED);
-            flashText.show("MISSED!", 1f);
+            flashText.show("MISSED!", 3f);
             System.out.println("Miss!"); // bone missed, print message to console
             ball = new Ball(viewport); // Reset bone to a new random position at the top
             return true;
@@ -171,11 +170,11 @@ public class Main implements ApplicationListener {
         // if dog hits enemy
         for (Enemy enemy : enemies) {
             enemyHitbox = enemy.getBounds();
-            if (dogHitbox.overlaps(enemyHitbox)) {
+            if (dogHitbox.overlaps(enemyHitbox) && !dog.isSlowed()) {
                 dog.applySlow(); // Apply slow effect to the player
                 whine.play(); // Play whine sound
                 font.setColor(Color.YELLOW); 
-                flashText.show("SLOWED!", 1.5f);
+                flashText.show("SLOWED!", 3f);
                 System.out.println("Hit by enemy!"); // Collision detected, print message to console
                 return true;
             }
