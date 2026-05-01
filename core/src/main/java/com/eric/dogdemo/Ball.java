@@ -19,6 +19,14 @@ public class Ball extends Sprite {
         setPosition(randomX, viewport.getWorldHeight() - getHeight()); // Start at the top with a random X position
     }
 
+    public float getSpeed() {
+        return speed;   
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
     public void update() {
         if (this.getY() < 0) {
             // Hit bottom - reset to top with random X position

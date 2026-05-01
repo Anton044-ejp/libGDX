@@ -35,10 +35,15 @@ public class Main implements ApplicationListener {
     private Sound growl;
     private Sound whine;
     private Texture enemyTexture;
+    private Texture fallingEnemyTexture;
     private Array<Enemy> enemies;
     private float spawnInterval;
     private float spawnTimer;
     private FlashText flashText;
+    private int level = 1;
+    private float fallingSpawnTimer = 0f;
+    private float fallingSpawnInterval = 3f;
+    private float ballSpeed = 2f; // whatever your current default is
 
     @Override
     public void create() {
@@ -60,9 +65,11 @@ public class Main implements ApplicationListener {
         growl = Gdx.audio.newSound(Gdx.files.internal("growl.mp3"));
         whine = Gdx.audio.newSound(Gdx.files.internal("dog-whine.mp3"));
         enemyTexture = new Texture("enemy.png");
+        fallingEnemyTexture = new Texture("falling-enemy.png");
         spawnInterval = 2f; // Initial spawn interval in seconds
         spawnTimer = 0f;
         enemies = new Array<>();
+        enemies.add(new RunningEnemy(enemyTexture, viewport));
     }
 
     @Override
@@ -84,19 +91,31 @@ public class Main implements ApplicationListener {
         background.draw(batch);
         dog.draw(batch);
         onCollision();
+        checkLevel();
         ball.draw(batch);
         batch.end();
         dog.move();
         ball.update();
 
         /////////////////ENEMIES////////////////
-        // Spawn enemies at random intervals
+        // Spawn running enemies at random intervals
         spawnTimer += Gdx.graphics.getDeltaTime();
         if (spawnTimer >= spawnInterval) {
-            enemies.add(new Enemy(enemyTexture, viewport));
+            enemies.add(new RunningEnemy(enemyTexture, viewport));
             spawnTimer = 0f;
             spawnInterval = 2f + (float)(Math.random() * 3f); // 2–4 seconds between spawns
         }
+
+        // Spawn falling enemies starting at level 2
+        if (level >= 2) {
+            fallingSpawnTimer += Gdx.graphics.getDeltaTime();
+            if (fallingSpawnTimer >= fallingSpawnInterval) {
+                enemies.add(new FallingEnemy(fallingEnemyTexture, viewport));
+                fallingSpawnTimer = 0f;
+                fallingSpawnInterval = 3f + (float)(Math.random() * 2f); // 3–5 seconds between spawns
+            }
+        }
+
         // --- Update ---
         for (Enemy enemy : enemies) {
             enemy.update();
@@ -153,17 +172,20 @@ public class Main implements ApplicationListener {
         if (dogHitbox.overlaps(ballHitbox)) {
                 score++; // Increment score on collision
                 bark.play(); // Play bark sound
+                flashText.show("CATCH! +1", 1f, Color.GREEN);
                 System.out.println("Catch!"); // Collision detected, print message to console
                 ball = new Ball(viewport); // Reset bone to a new random position at the top
+                ball.setSpeed(ballSpeed); // Reset ball speed to current default
                 return true;
         }
         // if dog misses bone
         if (ballHitbox.getY() < 0) {
             score -= 1; // Decrement score if ball goes below the screen
             growl.play(); // Play growl sound
-            flashText.show("MISSED!", 3f, Color.RED);
+            flashText.show("MISSED! -1", 1f, Color.RED);
             System.out.println("Miss!"); // bone missed, print message to console
             ball = new Ball(viewport); // Reset bone to a new random position at the top
+            ball.setSpeed(ballSpeed); // Reset ball speed to current default
             return true;
         }
         // if dog hits enemy
@@ -178,6 +200,27 @@ public class Main implements ApplicationListener {
             }
         }    
         return false;
+    }
+
+    private void checkLevel() {
+        int newLevel = (score / 5) + 1; // Level up every 5 points
+        if (newLevel > level) {
+            level = newLevel;
+            onLevelUp();
+        }
+    }
+
+    public void onLevelUp() {
+        flashText.show("LEVEL " + level + "!", 2f, Color.CYAN);
+        System.out.println("Level Up! Now at level " + level);
+        
+        if (level == 3) {
+            ballSpeed += 2f; // Increase ball speed
+        }
+
+        if (level == 4) {
+            ballSpeed += 2f; // Increase ball speed
+        }
     }
 
     @Override
