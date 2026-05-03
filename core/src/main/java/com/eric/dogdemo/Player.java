@@ -5,15 +5,16 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 
 public class Player extends Sprite {
-    private final float speed = 4f; // units per second 
+    private float speed = 4f; // units per second 
     private final FitViewport viewport;
     private float velocityY = 0f; // velocity is speed + direction
-    private final float gravity = -9.8f; // Adjust as needed
-    private final float jumpVelocity = 5f; //  Adjust as needed
+    private final float gravity = -7f; // upHeight-Adjust as needed
+    private final float jumpVelocity = 5f; //  upSpeed-Adjust as needed
     private boolean isGrounded = true;
     private float slowTimer = 0f;
     private float currentSpeed = 4f;  // whatever your current speed is
@@ -25,15 +26,29 @@ public class Player extends Sprite {
         this.viewport = viewport;
     }
 
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
     public void input() {
         float delta = Gdx.graphics.getDeltaTime(); // for all hw frame rate
 
-        // Update slow timer
+        //**************Slow movement logic**************
         slowTimer -= delta;
+        // Ensure slowTimer doesn't go negative
         if (slowTimer <= 0) {
             slowTimer = 0f;
         }
-        currentSpeed = (slowTimer > 0) ? slowedSpeed : speed;
+        // If slowTimer is active, use slowed speed; otherwise, use normal speed
+        if (slowTimer > 0) {
+            currentSpeed = slowedSpeed;
+        } else {
+            currentSpeed = speed;
+        }
         
         // **************Horizontal movement logic**************
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
@@ -57,8 +72,24 @@ public class Player extends Sprite {
             velocityY = 0;
             isGrounded = true;
         }
+    }// end of input method
+
+    /***************Platform landing logic**************
+     * Checks if player is landing on a platform and adjusts position and velocity accordingly.
+     * Only allows landing if player is falling and feet are near the top of the platform.
+     */
+    public void landOnPlatform(Rectangle platform) {
+        Rectangle dogBounds = getBoundingRectangle();
+        // only land if falling downward and feet are near the top of platform
+        if (velocityY < 0 && dogBounds.overlaps(platform) &&
+            getY() >= platform.y) {
+                setY(platform.y + platform.height);
+                velocityY = 0;
+                isGrounded = true;
+            }
     }
 
+    // **************World clamping logic**************
     public void move() {
         this.setX(MathUtils.clamp(this.getX(), 
       0, viewport.getWorldWidth() - this.getWidth()));
@@ -66,6 +97,7 @@ public class Player extends Sprite {
       0, viewport.getWorldHeight() - this.getHeight()));
     }
 
+    //**************Slow movement methods**************
     public void applySlow() {
         slowTimer = 3f; // seconds of slow (adjust 1-2f as you like)       
     }
@@ -73,7 +105,12 @@ public class Player extends Sprite {
     public boolean isSlowed() {
         return slowTimer > 0;
     }
+    // **************Reset player state (for new game or after death)**************
+    public void reset() {
+        slowTimer = 0f;
+        velocityY = 0f;
+        isGrounded = true;
+    }
 
 
-    
 }
