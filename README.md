@@ -1,5 +1,7 @@
 # DogDemo
 
+Simple 2D game catching falling items with enemies to slow player down and a level system increasing difficulty as the score rises.
+
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
 
 This project was generated with a template including simple application launchers and an empty `ApplicationListener` implementation.
