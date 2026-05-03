@@ -46,20 +46,21 @@ public class Main implements ApplicationListener {
     private float fallingSpawnInterval = 3f;
     private float ballSpeed = 2f; // whatever your current default is
     private Platform platform;
+    private boolean isPaused = false;
     private boolean gameOver = false;
 
     @Override
     public void create() {
         backgroundImage = new Texture("background-clouds.jpg");
         batch = new SpriteBatch();
-        viewport = new FitViewport(8, 5);
+        viewport = new FitViewport(8, 4.2f);
         dog = new Player(viewport);
         ball = new Ball(viewport);
         background = new Sprite(backgroundImage);
         dog.setSize(0.75f, 0.75f); // set in 1/2 unit block in 8x5 viewport
         dog.setPosition(1, 0); // default (0,0) bottom left!
         background.setPosition(0, 0);
-        background.setSize(8, 5); // fill the whole viewport
+        background.setSize(8, 4.2f); // leave room for bar at bottom
         uiViewport = new ScreenViewport();
         shapeRenderer = new ShapeRenderer();
         font = new BitmapFont();
@@ -85,8 +86,33 @@ public class Main implements ApplicationListener {
     }
 
     @Override
-    public void render() {
-        // Draw game world here. The render method is called continuously in a loop.
+    public void render() { // Draw game world here. The render method is called continuously in a loop.
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            Gdx.app.exit();
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+            isPaused = !isPaused;
+        }
+        if (isPaused) {
+            ScreenUtils.clear(Color.BLACK);
+            uiViewport.apply();
+            batch.setProjectionMatrix(uiViewport.getCamera().combined);
+            batch.begin();
+            font.setColor(Color.WHITE);
+            font.getData().setScale(6f);
+            font.draw(batch, "PAUSED",
+                uiViewport.getScreenWidth() / 2f - 100,
+                uiViewport.getScreenHeight() / 2f + 60);
+            font.getData().setScale(2f);
+            font.draw(batch, "Press P to resume",
+                uiViewport.getScreenWidth() / 2f - 100,
+                uiViewport.getScreenHeight() / 2f - 40);
+            batch.end();
+            return; // Skip update and render logic when paused
+        }
+
         viewport.apply();
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined); // world coords not UI
         batch.setProjectionMatrix(viewport.getCamera().combined);
@@ -109,9 +135,6 @@ public class Main implements ApplicationListener {
         dog.move();
         ball.update();
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit();
-        }
 
         /////////////////ENEMIES////////////////
         // Spawn running enemies at random intervals
@@ -165,8 +188,8 @@ public class Main implements ApplicationListener {
         batch.begin();
         font.setColor(Color.WHITE);
         font.getData().setScale(4.0f); // .05 is smallest
-        font.draw(batch, "Score: " + score, 20, uiViewport.getScreenHeight() - 10);
-        font.draw(batch, "Level: " + level, uiViewport.getScreenWidth() - 200, uiViewport.getScreenHeight() - 15);
+        font.draw(batch, "Score: " + score, 210, uiViewport.getScreenHeight() - 10);
+        font.draw(batch, "Level: " + level, uiViewport.getScreenWidth() - 400, uiViewport.getScreenHeight() - 15);
         batch.end();
 
         // Draw flash text if active
@@ -174,6 +197,26 @@ public class Main implements ApplicationListener {
         batch.begin();
         font.getData().setScale(6f); // big and bold
         flashText.render(batch, uiViewport);
+        batch.end();
+
+        // Draw instructions bar across the bottom
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(0, 0, uiViewport.getScreenWidth(), 100);
+        shapeRenderer.end();
+
+        batch.begin();
+        font.setColor(Color.WHITE);
+        font.getData().setScale(2f);
+        float bottomY = 50;
+        font.draw(batch, "SPACE: jump", 
+            uiViewport.getScreenWidth() * 0.08f, bottomY);
+        font.draw(batch, "LEFT/RIGHT: move", 
+            uiViewport.getScreenWidth() * 0.30f, bottomY);
+        font.draw(batch, "P: paws", 
+            uiViewport.getScreenWidth() * 0.58f, bottomY);
+        font.draw(batch, "ESC: exit", 
+            uiViewport.getScreenWidth() * 0.78f, bottomY);
         batch.end();
 
         //////////GAME OVER//////////
@@ -302,12 +345,15 @@ public class Main implements ApplicationListener {
 
     @Override
     public void pause() {
-        // Invoked when your application is paused.
+        isPaused = true;
+        bark.stop();
+        growl.stop();
+        whine.stop();
     }
 
     @Override
     public void resume() {
-        // Invoked when your application is resumed after pause.
+        isPaused = false;    
     }
 
     @Override

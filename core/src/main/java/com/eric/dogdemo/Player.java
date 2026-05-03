@@ -53,9 +53,11 @@ public class Player extends Sprite {
         // **************Horizontal movement logic**************
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             this.translateX(-currentSpeed*delta); // Move left
+            if (!isFlipX()) flip(true, false); // flip to face left
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             this.translateX(currentSpeed*delta); // Move right
+            if (isFlipX()) flip(true, false); // flip to face right
         }
 
         // **************Jumping logic**************
