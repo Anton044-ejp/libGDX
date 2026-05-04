@@ -13,8 +13,8 @@ public class Player extends Sprite {
     private float speed = 4f; // units per second 
     private final FitViewport viewport;
     private float velocityY = 0f; // velocity is speed + direction
-    private final float gravity = -7f; // upHeight-Adjust as needed
-    private final float jumpVelocity = 5f; //  upSpeed-Adjust as needed
+    private final float gravity = -7f; // upHeight/downSpeed-Adjust as needed
+    private final float jumpVelocity = 5f; // upSpeed-Adjust as needed
     private boolean isGrounded = true;
     private float slowTimer = 0f;
     private float currentSpeed = 4f;  // whatever your current speed is

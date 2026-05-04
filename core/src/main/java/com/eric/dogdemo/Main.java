@@ -66,8 +66,8 @@ public class Main implements ApplicationListener {
         font = new BitmapFont();
         flashText = new FlashText(font);
         bark =  Gdx.audio.newSound(Gdx.files.internal("dog-bark.mp3"));
-        growl = Gdx.audio.newSound(Gdx.files.internal("growl.mp3"));
-        whine = Gdx.audio.newSound(Gdx.files.internal("dog-whine.mp3"));
+        growl = Gdx.audio.newSound(Gdx.files.internal("ball-drop.mp3"));
+        whine = Gdx.audio.newSound(Gdx.files.internal("growl.mp3"));
         enemyTexture = new Texture("enemy.png");
         fallingEnemyTexture = new Texture("falling-enemy.png");
         spawnInterval = 2f; // Initial spawn interval in seconds
@@ -87,32 +87,38 @@ public class Main implements ApplicationListener {
 
     @Override
     public void render() { // Draw game world here. The render method is called continuously in a loop.
-        
+        // Exit game if ESC is pressed
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
         }
-
+        // Toggle pause if P is pressed
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             isPaused = !isPaused;
         }
+        // Pause screen
         if (isPaused) {
             ScreenUtils.clear(Color.BLACK);
             uiViewport.apply();
             batch.setProjectionMatrix(uiViewport.getCamera().combined);
             batch.begin();
             font.setColor(Color.WHITE);
-            font.getData().setScale(6f);
-            font.draw(batch, "PAUSED",
+            font.getData().setScale(2f);
+            font.draw(batch, "The game is on",
                 uiViewport.getScreenWidth() / 2f - 100,
-                uiViewport.getScreenHeight() / 2f + 60);
+                uiViewport.getScreenHeight() / 2f + 120);
+            font.getData().setScale(6f);
+            font.draw(batch, "PAWS!",
+                uiViewport.getScreenWidth() / 2f - 100,
+                uiViewport.getScreenHeight() / 2f + 40);
             font.getData().setScale(2f);
             font.draw(batch, "Press P to resume",
                 uiViewport.getScreenWidth() / 2f - 100,
-                uiViewport.getScreenHeight() / 2f - 40);
+                uiViewport.getScreenHeight() / 2f - 60);
             batch.end();
             return; // Skip update and render logic when paused
         }
 
+        // Build world 
         viewport.apply();
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined); // world coords not UI
         batch.setProjectionMatrix(viewport.getCamera().combined);
@@ -125,9 +131,8 @@ public class Main implements ApplicationListener {
         background.draw(batch);
         dog.draw(batch);
         ball.draw(batch);
+        platform.render(batch);
         batch.end();
-
-        platform.render(shapeRenderer);
 
         onCollision();
         checkLevel();
@@ -362,7 +367,6 @@ public class Main implements ApplicationListener {
         font.dispose();
         enemyTexture.dispose();
         batch.dispose();
-
     }
 }
 

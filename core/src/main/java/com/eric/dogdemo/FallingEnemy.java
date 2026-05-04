@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class FallingEnemy extends Enemy {
     private final float speed = 2f; // units per second
-
+    // constructor to initialize position and bounds
     public FallingEnemy(Texture texture, FitViewport viewport) {
         super(texture);
         setSize(0.75f, 0.5f); // Set the size
